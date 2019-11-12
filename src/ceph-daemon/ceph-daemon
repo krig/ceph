@@ -1460,7 +1460,8 @@ def command_rm_daemon():
     call(['systemctl', 'disable', unit_name],
          verbose_on_failure=False)
     data_dir = get_data_dir(args.fsid, daemon_type, daemon_id)
-    call_throws(['rm', '-rf', data_dir])
+    if os.path.isdir(data_dir):
+        call_throws(['rm', '-rf', data_dir])
 
 ##################################
 
@@ -1499,22 +1500,21 @@ def command_rm_cluster():
          verbose_on_failure=False)
 
     # rm units
-    call_throws(['rm', '-f', args.unit_dir +
-                             '/ceph-%s@.service' % args.fsid])
-    call_throws(['rm', '-f', args.unit_dir +
-                             '/ceph-%s-crash.service' % args.fsid])
-    call_throws(['rm', '-f', args.unit_dir +
-                             '/ceph-%s.target' % args.fsid])
-    call_throws(['rm', '-rf',
-                  args.unit_dir + '/ceph-%s.target.wants' % args.fsid])
+    if os.path.isdir(args.unit_dir):
+        call_throws(['rm', '-f', '{}/ceph-{}@.service'.fmt(args.unit_dir, args.fsid)])
+        call_throws(['rm', '-f', '{}/ceph-{}-crash.service'.fmt(args.unit_dir, args.fsid)])
+        call_throws(['rm', '-f', '{}/ceph-{}.target'.fmt(args.unit_dir, args.fsid)])
+        call_throws(['rm', '-rf', '{}/ceph-{}.target.wants'.fmt(args.unit_dir, args.fsid)])
     # rm data
-    call_throws(['rm', '-rf', args.data_dir + '/' + args.fsid])
+    if os.path.isdir(args.data_dir):
+        call_throws(['rm', '-rf', os.path.join(args.data_dir, args.fsid)])
     # rm logs
-    call_throws(['rm', '-rf', args.log_dir + '/' + args.fsid])
-    call_throws(['rm', '-rf', args.log_dir +
-                             '/*.wants/ceph-%s@*' % args.fsid])
+    if os.path.isdir(args.log_dir):
+        call_throws(['rm', '-rf', os.path.join(args.log_dir, args.fsid)])
+        call_throws(['rm', '-rf', '{}/*.wants/ceph-{}@*'.fmt(args.log_dir, args.fsid)])
     # rm logrotate config
-    call_throws(['rm', '-f', args.logrotate_dir + '/ceph-%s' % args.fsid])
+    if os.path.isdir(args.logrotate_dir):
+        call_throws(['rm', '-f', os.path.join(args.logrotate_dir, args.fsid)])
 
 
 ##################################
